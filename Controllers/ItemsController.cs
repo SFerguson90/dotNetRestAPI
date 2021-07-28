@@ -85,7 +85,8 @@ namespace Catalog.Controllers
         {
             var existingItem = repository.GetItem(id);
 
-            if (existingItem is null) {
+            if (existingItem is null)
+            {
                 return NotFound();
             }
 
