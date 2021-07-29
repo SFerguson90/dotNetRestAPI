@@ -35,22 +35,26 @@ namespace Catalog
             // must tell MongoDB how to reflect/rep items
             BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
             BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));
+            var mongoDbSettings = Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
 
-            services.AddSingleton<IMongoClient>(ServiceProvider => 
+            services.AddSingleton<IMongoClient>(serviceProvider => 
             {
-                var settings = Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
-                return new MongoClient(settings.ConnectionString);
+                return new MongoClient(mongoDbSettings.ConnectionString);
             });
 
             services.AddSingleton<IItemsRepository, MongoDbItemsRepository>();
             // must update for Async
-            services.AddControllers(options => {
+            services.AddControllers(options =>
+            {
                 options.SuppressAsyncSuffixInActionNames = false;
             });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Catalog", Version = "v1" });
             });
+
+            services.AddHealthChecks()
+                .AddMongoDb(mongoDbSettings.ConnectionString, name:"mongodb", timeout: TimeSpan.FromSeconds(3));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,6 +76,7 @@ namespace Catalog
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
     }

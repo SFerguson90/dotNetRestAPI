@@ -24,7 +24,7 @@ namespace Catalog.Controllers
 
         // GET /items
         [HttpGet]
-        public async Task<IEnumerable<ItemDto>> GetItems()
+        public async Task<IEnumerable<ItemDto>> GetItemsAsync()
         {
             var items = (await repository.GetItemsAsync())
                         .Select(item => item.AsDto());
@@ -65,6 +65,7 @@ namespace Catalog.Controllers
         // PUT /items/{id}
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateItemAsync(Guid id, UpdateItemDto itemDto) {
+            
             var existingItem = await repository.GetItemAsync(id);
 
             if (existingItem is null) {
